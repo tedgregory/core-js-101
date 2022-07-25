@@ -461,15 +461,11 @@ function getMatrixProduct(m1, m2) {
 function evaluateTicTacToePosition(position) {
   const checkStrike = (a, b, c) => ((a === b && a === c) ? a : false);
 
-  // horizontal
-  for (let i = 0; i < position.length; i += 1) {
-    const res = checkStrike(...position[i]);
+  // horizontal & vertical
+  for (let i = 0, res; i < position.length; i += 1) {
+    res = checkStrike(...position[i]);
     if (res) return res;
-  }
-
-  // vertical
-  for (let i = 0; i < position.length; i += 1) {
-    const res = checkStrike(...position.map((el) => el[i]));
+    res = checkStrike(...position.map((el) => el[i]));
     if (res) return res;
   }
   // diagonal

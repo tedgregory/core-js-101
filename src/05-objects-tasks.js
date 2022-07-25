@@ -112,6 +112,7 @@ function fromJSON(proto, json) {
  *  For more examples see unit tests.
  */
 
+// my time is up
 const cssSelectorBuilder = {
   element(/* value */) {
     throw new Error('Not implemented');
