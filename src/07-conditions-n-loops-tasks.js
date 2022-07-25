@@ -249,6 +249,23 @@ function reverseInteger(num) {
 
 
 /**
+ * Returns the digital root of integer:
+ *   step1 : find sum of all digits
+ *   step2 : if sum > 9 then goto step1 otherwise return the sum
+ *
+ * @param {number} n
+ * @return {number}
+ *
+ * @example:
+ *   12345 ( 1+2+3+4+5 = 15, 1+5 = 6) => 6
+ *   23456 ( 2+3+4+5+6 = 20, 2+0 = 2) => 2
+ *   10000 ( 1+0+0+0+0 = 1 ) => 1
+ *   165536 (1+6+5+5+3+6 = 26,  2+6 = 8) => 8
+ */
+function getDigitalRoot(num) {
+  return ((num - 1) % 9) + 1;
+}
+/**
  * Validates the CCN (credit card number) and return true if CCN is valid
  * and false otherwise.
  *
@@ -268,39 +285,21 @@ function reverseInteger(num) {
  *   5436468789016589 => false
  *   4916123456789012 => false
  */
-function isCreditCardNumber(/* ccn */) {
-  // const res = [...ccn.toString(10)].map((num, i) => {
-  //   let digit;
-  //   if (i % 2 !== 0) {
-  //     digit = +num * 2;
-  //     if (digit >= 10) {
-  //       digit = Math.floor(digit / 10) + (digit % 10);
-  //     }
-  //   } else {
-  //     digit = +num;
-  //   }
-  //   return digit;
-  // });
-  // return res.reduce((r, e) => (r + e > 10 ? r + e - 10 : r + e), 0) % 10 === 0;
-  throw new Error('Not implemented');
-}
 
-/**
- * Returns the digital root of integer:
- *   step1 : find sum of all digits
- *   step2 : if sum > 9 then goto step1 otherwise return the sum
- *
- * @param {number} n
- * @return {number}
- *
- * @example:
- *   12345 ( 1+2+3+4+5 = 15, 1+5 = 6) => 6
- *   23456 ( 2+3+4+5+6 = 20, 2+0 = 2) => 2
- *   10000 ( 1+0+0+0+0 = 1 ) => 1
- *   165536 (1+6+5+5+3+6 = 26,  2+6 = 8) => 8
- */
-function getDigitalRoot(num) {
-  return ((num - 1) % 9) + 1;
+function isCreditCardNumber(ccn) {
+  const lastDigit = Number(ccn.toString(10).slice(-1));
+  let isOdd = true;
+  const checksum = [...ccn.toString(10)].slice(0, -1).reverse().reduce((res, num) => {
+    let digit = Number(num);
+    if (isOdd) {
+      digit = (((digit *= 2) - 1) % 9) + 1;
+    }
+    isOdd = !isOdd;
+    return res + digit;
+  }, 0);
+  if (lastDigit === 0 && (checksum % 10 === 0)) return true;
+  if (lastDigit === (10 - (checksum % 10))) return true;
+  return false;
 }
 
 
@@ -361,8 +360,8 @@ function isBracketsBalanced(str) {
  *    365, 4  => '11231'
  *    365, 10 => '365'
  */
-function toNaryString(/* num, n */) {
-  throw new Error('Not implemented');
+function toNaryString(num, n) {
+  return num.toString(n);
 }
 
 
@@ -378,8 +377,18 @@ function toNaryString(/* num, n */) {
  *   ['/web/assets/style.css', '/.bin/mocha',  '/read.me'] => '/'
  *   ['/web/favicon.ico', '/web-scripts/dump', '/verbalizer/logs'] => '/'
  */
-function getCommonDirectoryPath(/* pathes */) {
-  throw new Error('Not implemented');
+function getCommonDirectoryPath(paths) {
+  const commons = [];
+  const chunks = paths.map((el) => el.split('/'));
+  for (let i = 0; i < chunks[0].length; i += 1) {
+    for (let j = 1; j < chunks.length; j += 1) {
+      if (chunks[j][i] !== chunks[0][i]) {
+        return commons.length ? `${commons.join('/')}/` : '';
+      }
+    }
+    commons.push(chunks[0][i]);
+  }
+  return commons.length ? `${commons.join('/')}/` : '';
 }
 
 
@@ -401,8 +410,21 @@ function getCommonDirectoryPath(/* pathes */) {
  *                         [ 6 ]]
  *
  */
-function getMatrixProduct(/* m1, m2 */) {
-  throw new Error('Not implemented');
+function getMatrixProduct(m1, m2) {
+  const m1Rows = m1.length;
+  const m1Cols = m1[0].length;
+  const m2Cols = m2[0].length;
+  const res = new Array(m1Rows); // result
+  for (let i = 0; i < m1Rows; i += 1) {
+    res[i] = new Array(m2Cols);
+    for (let j = 0; j < m2Cols; j += 1) {
+      res[i][j] = 0;
+      for (let k = 0; k < m1Cols; k += 1) {
+        res[i][j] += m1[i][k] * m2[k][j];
+      }
+    }
+  }
+  return res;
 }
 
 
@@ -436,8 +458,26 @@ function getMatrixProduct(/* m1, m2 */) {
  *    [    ,   ,    ]]
  *
  */
-function evaluateTicTacToePosition(/* position */) {
-  throw new Error('Not implemented');
+function evaluateTicTacToePosition(position) {
+  const checkStrike = (a, b, c) => ((a === b && a === c) ? a : false);
+
+  // horizontal
+  for (let i = 0; i < position.length; i += 1) {
+    const res = checkStrike(...position[i]);
+    if (res) return res;
+  }
+
+  // vertical
+  for (let i = 0; i < position.length; i += 1) {
+    const res = checkStrike(...position.map((el) => el[i]));
+    if (res) return res;
+  }
+  // diagonal
+  let line = checkStrike(...position.map((elem, ind) => elem[ind]));
+  if (line) return line;
+  line = checkStrike(...position.map((elem, ind) => elem[2 - ind]));
+  if (line) return line;
+  return undefined;
 }
 
 
