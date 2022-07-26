@@ -112,34 +112,106 @@ function fromJSON(proto, json) {
  *  For more examples see unit tests.
  */
 
-// my time is up
+// my class selector
+class MySelector {
+  constructor(selector) {
+    this.noDuplicateTypes = ['element', 'id', 'pseudo-element'];
+    this.result = [selector];
+  }
+
+  element(value) {
+    this.check('element');
+    this.result.push({ type: 'element', value });
+    return this;
+  }
+
+  id(value) {
+    this.check('id');
+    this.result.push({ type: 'id', value });
+    return this;
+  }
+
+  class(value) {
+    this.check('class');
+    this.result.push({ type: 'class', value });
+    return this;
+  }
+
+  attr(value) {
+    this.check('attr');
+    this.result.push({ type: 'attr', value });
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.check('pseudo-class');
+    this.result.push({ type: 'pseudo-class', value });
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.check('pseudo-element');
+    this.result.push({ type: 'pseudo-element', value });
+    return this;
+  }
+
+  stringify() {
+    return this.result.reduce((res, el) => {
+      if (el.type === 'element') return res + el.value;
+      if (el.type === 'pseudo-element') return `${res}::${el.value}`;
+      if (el.type === 'id') return `${res}#${el.value}`;
+      if (el.type === 'class') return `${res}.${el.value}`;
+      if (el.type === 'pseudo-class') return `${res}:${el.value}`;
+      if (el.type === 'attr') return `${res}[${el.value}]`;
+      return res;
+    }, '');
+  }
+
+  check(type) {
+    if (this.noDuplicateTypes.includes(type)) {
+      if (this.result.filter((el) => el.type === type).length) {
+        throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+      }
+    }
+    const paragon = ['element', 'id', 'class', 'attr', 'pseudo-class', 'pseudo-element'];
+    const index = paragon.indexOf(this.result[this.result.length - 1].type);
+    if (paragon.indexOf(type) < index) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+  }
+}
+
+// builder itself
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    return new MySelector({ type: 'element', value });
+  },
+  pseudoElement(value) {
+    return new MySelector({ type: 'pseudo-element', value });
+  },
+  id(value) {
+    return new MySelector({ type: 'id', value });
+  },
+  class(value) {
+    return new MySelector({ type: 'class', value });
+  },
+  pseudoClass(value) {
+    return new MySelector({ type: 'pseudo-class', value });
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new MySelector({ type: 'attr', value });
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  attr(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(sel1, separator, sel2) {
+    return {
+      sel1,
+      sel2,
+      separator,
+      stringify() {
+        return `${this.sel1.stringify()} ${this.separator} ${this.sel2.stringify()}`;
+      },
+    };
   },
 };
 
